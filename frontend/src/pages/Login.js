@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { apiError } from "@/lib/api";
-import { Zap, Lock, User, Loader2, Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { Zap, Lock, User, Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -64,11 +64,7 @@ export default function Login() {
               Pemantauan cakupan listrik rumah tangga per kecamatan, desa, dan kelurahan
               di Kabupaten Murung Raya, Provinsi Kalimantan Tengah.
             </p>
-            <div className="mt-8 flex items-center gap-2 text-sm text-teal-200/80">
-              <ShieldCheck className="w-4 h-4" /> Dinas Energi dan Sumber Daya Mineral
-            </div>
           </div>
-          <div className="font-mono text-xs text-teal-300/60">© 2026 · ESDM Murung Raya</div>
         </div>
       </div>
 
@@ -137,10 +133,6 @@ export default function Login() {
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Masuk ke Dashboard"}
               </Button>
             </form>
-
-            <div className="mt-6 rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs text-slate-500">
-              <span className="font-semibold text-slate-600">Demo:</span> username <span className="font-mono text-teal-700">admin</span> · password <span className="font-mono text-teal-700">adminRE1234#</span>
-            </div>
           </div>
         </div>
       </div>
