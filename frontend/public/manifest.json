@@ -1,0 +1,15 @@
+{
+  "short_name": "Rasio Elektrifikasi",
+  "name": "Sistem Laporan Rasio Elektrifikasi Murung Raya",
+  "icons": [
+    {
+      "src": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/95/Lambang_Kabupaten_Murung_Raya.png/250px-Lambang_Kabupaten_Murung_Raya.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#0d9488",
+  "background_color": "#ffffff"
+}
