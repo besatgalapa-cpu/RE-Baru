@@ -42,7 +42,7 @@ export default function Login() {
       <div className="hidden lg:flex lg:w-[45%] relative overflow-hidden bg-slate-900">
         <img
           src="/login-bg.jpg"
-          alt="Elektrifikasi pedalaman Kalimantan"
+          alt="Monumen Bundaran Emas Murung Raya"
           className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-teal-950/95 via-teal-950/45 to-slate-900/30" />
