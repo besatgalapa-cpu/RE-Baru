@@ -41,11 +41,12 @@ export default function Login() {
       {/* Left visual panel */}
       <div className="hidden lg:flex lg:w-[45%] relative overflow-hidden bg-slate-900">
         <img
-          src="https://images.pexels.com/photos/21832812/pexels-photo-21832812.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
-          alt="Energi terbarukan"
-          className="absolute inset-0 w-full h-full object-cover opacity-40"
+          src="/login-bg.jpg"
+          alt="Elektrifikasi pedalaman Kalimantan"
+          className="absolute inset-0 w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-teal-950/70" />
+        <div className="absolute inset-0 bg-gradient-to-t from-teal-950/95 via-teal-950/45 to-slate-900/30" />
+        <div className="absolute inset-0 bg-gradient-to-r from-teal-950/40 to-transparent" />
         <div className="relative z-10 flex flex-col justify-between p-12 text-white">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center">
