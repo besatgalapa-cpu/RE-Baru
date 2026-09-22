@@ -146,6 +146,40 @@ async def me(user=Depends(current_user)):
     return user
 
 
+@api_router.post("/auth/avatar")
+async def upload_avatar(file: UploadFile = File(...), user=Depends(current_user)):
+    if file.content_type not in ALLOWED_IMG:
+        raise HTTPException(status_code=400, detail="File harus berupa gambar (JPG/PNG/WEBP)")
+    data = await file.read()
+    if len(data) > MAX_UPLOAD:
+        raise HTTPException(status_code=400, detail="Ukuran file maksimal 10 MB")
+    uid = str(user["id"])
+    try:
+        avatar_bytes = make_thumbnail(data, max_w=256, quality=80)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Gambar tidak valid")
+    path = f"murung-raya-re/avatar/{uid}.jpg"
+    result = put_object(path, avatar_bytes, "image/jpeg")
+    avatar_ver = int(datetime.now(timezone.utc).timestamp())
+    await db.users.update_one(
+        {"_id": ObjectId(uid)},
+        {"$set": {"avatar_path": result["path"], "avatar_ver": avatar_ver}},
+    )
+    return {"avatar_ver": avatar_ver}
+
+
+@api_router.get("/auth/avatar/{user_id}")
+async def get_avatar(user_id: str, v: str = Query(""), user=Depends(current_user)):
+    rec = await db.users.find_one({"_id": ObjectId(user_id)})
+    if not rec or not rec.get("avatar_path"):
+        raise HTTPException(status_code=404, detail="Foto profil tidak ditemukan")
+    try:
+        data, _ = get_object(rec["avatar_path"])
+    except Exception:
+        raise HTTPException(status_code=404, detail="Objek tidak ditemukan di storage")
+    return Response(content=data, media_type="image/jpeg")
+
+
 # ---------------- Users ----------------
 @api_router.get("/users")
 async def list_users(user=Depends(require("user:manage"))):

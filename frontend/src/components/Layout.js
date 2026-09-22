@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import api from "@/lib/api";
 import {
   LayoutDashboard, FileSpreadsheet, Building2, MapPin, Users,
-  Calendar, UserCog, Settings, LogOut, Menu, Zap, ChevronDown, Images,
+  Calendar, UserCog, Settings, LogOut, Menu, Zap, ChevronDown, Images, Camera, Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -24,9 +25,11 @@ const NAV = [
 
 export default function Layout({ children }) {
   const [open, setOpen] = useState(false);
-  const { user, logout, can } = useAuth();
+  const { user, setUser, logout, can } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const fileRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
   const active = NAV.find((n) => location.pathname.startsWith(n.to));
   const visibleNav = NAV.filter((n) => !n.perm || can(n.perm));
 
@@ -36,7 +39,37 @@ export default function Layout({ children }) {
     navigate("/login");
   };
 
+  const onPickAvatar = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { toast.error("File harus berupa gambar"); return; }
+    setUploading(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const { data } = await api.post("/auth/avatar", form, { headers: { "Content-Type": "multipart/form-data" } });
+      setUser((u) => ({ ...u, avatar_ver: data.avatar_ver }));
+      toast.success("Foto profil diperbarui");
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Gagal mengunggah foto");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const initials = (user?.name || "AD").split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+  const avatarUrl = user?.avatar_ver
+    ? `${api.defaults.baseURL}/auth/avatar/${user.id}?v=${user.avatar_ver}`
+    : null;
+
+  const AvatarCircle = ({ size }) => (
+    avatarUrl ? (
+      <img src={avatarUrl} alt="Foto profil" className={`${size} rounded-full object-cover`} data-testid="user-avatar-img" />
+    ) : (
+      <div className={`${size} rounded-full bg-teal-600 text-white flex items-center justify-center text-sm font-bold`} data-testid="user-avatar-initials">{initials}</div>
+    )
+  );
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -113,10 +146,11 @@ export default function Layout({ children }) {
             </div>
           </div>
 
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPickAvatar} data-testid="avatar-file-input" />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-full hover:bg-slate-100 transition-colors" data-testid="user-menu">
-                <div className="w-9 h-9 rounded-full bg-teal-600 text-white flex items-center justify-center text-sm font-bold">{initials}</div>
+                <AvatarCircle size="w-9 h-9" />
                 <div className="hidden sm:block text-left leading-tight">
                   <div className="text-sm font-semibold text-slate-900">{user?.username}</div>
                   <div className="text-[11px] text-slate-500">{user?.role}</div>
@@ -124,9 +158,19 @@ export default function Layout({ children }) {
                 <ChevronDown className="w-4 h-4 text-slate-400 hidden sm:block" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52">
-              <DropdownMenuLabel>{user?.username}</DropdownMenuLabel>
+            <DropdownMenuContent align="end" className="w-56">
+              <div className="flex items-center gap-3 px-2 py-2">
+                <AvatarCircle size="w-11 h-11" />
+                <div className="leading-tight">
+                  <div className="text-sm font-semibold text-slate-900">{user?.name || user?.username}</div>
+                  <div className="text-[11px] text-slate-500">{user?.role}</div>
+                </div>
+              </div>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={(e) => { e.preventDefault(); if (!uploading) fileRef.current?.click(); }} data-testid="menu-change-avatar">
+                {uploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Camera className="w-4 h-4 mr-2" />}
+                {uploading ? "Mengunggah..." : "Ganti Foto Profil"}
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate("/pengaturan")} data-testid="menu-settings">
                 <Settings className="w-4 h-4 mr-2" /> Pengaturan
               </DropdownMenuItem>
