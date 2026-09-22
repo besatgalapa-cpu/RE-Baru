@@ -188,24 +188,31 @@ export default function Dashboard() {
 
       {/* Trend + PLN/NonPLN stacked */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-white rounded-2xl border border-slate-200 p-5" data-testid="chart-trend">
-          <h3 className="font-bold text-slate-900">Tren Rasio Elektrifikasi Antar Triwulan</h3>
-          <p className="text-xs text-slate-500 mb-2">Progres cakupan listrik per periode</p>
-          <ResponsiveContainer width="100%" height={280}>
-            <AreaChart data={trend} margin={{ left: -10, right: 10 }}>
-              <defs>
-                <linearGradient id="reGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={COLORS.primary} stopOpacity={0.3} />
-                  <stop offset="100%" stopColor={COLORS.primary} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid vertical={false} stroke="#f1f5f9" />
-              <XAxis dataKey="periode" tick={{ fontSize: 11, fill: "#94a3b8" }} />
-              <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: "#94a3b8" }} unit="%" />
-              <Tooltip formatter={(v) => fmtPct(v)} />
-              <Area type="monotone" dataKey="re" stroke={COLORS.primary} strokeWidth={3} fill="url(#reGrad)" name="Rasio Elektrifikasi" dot={{ r: 4, fill: COLORS.primary }} />
-            </AreaChart>
+        <div className="bg-white rounded-2xl border border-slate-200 p-5" data-testid="chart-desa-pln">
+          <h3 className="font-bold text-slate-900">Rasio Elektrifikasi PLN per Desa</h3>
+          <p className="text-xs text-slate-500 mb-2">Desa berlistrik PLN vs belum berlistrik PLN</p>
+          <ResponsiveContainer width="100%" height={230}>
+            <PieChart>
+              <Pie data={[
+                { name: "Desa Berlistrik PLN", value: 82 },
+                { name: "Desa Belum Berlistrik PLN", value: 43 },
+              ]} dataKey="value" nameKey="name" innerRadius={58} outerRadius={90} paddingAngle={3}>
+                <Cell fill={COLORS.pln} />
+                <Cell fill={COLORS.belum} />
+              </Pie>
+              <Tooltip formatter={(v) => fmtNum(v) + " desa"} />
+            </PieChart>
           </ResponsiveContainer>
+          <div className="space-y-2 mt-2">
+            <div className="flex items-center justify-between text-sm" data-testid="desa-pln-row">
+              <span className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm" style={{ background: COLORS.pln }} />Desa Berlistrik PLN</span>
+              <span className="font-mono font-semibold text-slate-700">82 desa · 65,6%</span>
+            </div>
+            <div className="flex items-center justify-between text-sm" data-testid="desa-belum-pln-row">
+              <span className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm" style={{ background: COLORS.belum }} />Desa Belum Berlistrik PLN</span>
+              <span className="font-mono font-semibold text-slate-700">43 desa · 34,4%</span>
+            </div>
+          </div>
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200 p-5" data-testid="chart-stacked">
