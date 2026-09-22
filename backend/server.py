@@ -236,8 +236,14 @@ ROMAN = {"I": 1, "II": 2, "III": 3, "IV": 4}
 async def list_periods(user=Depends(current_user)):
     docs = await db.periods.find({}, {"_id": 0}).to_list(200)
     docs.sort(key=lambda p: (p["tahun"], ROMAN.get(p["triwulan"], 0)))
+    period_ids = [d["id"] for d in docs]
+    counts = await db.kecamatan.aggregate([
+        {"$match": {"period_id": {"$in": period_ids}}},
+        {"$group": {"_id": "$period_id", "count": {"$sum": 1}}}
+    ]).to_list(500)
+    count_map = {c["_id"]: c["count"] for c in counts}
     for d in docs:
-        d["kecamatan_count"] = await db.kecamatan.count_documents({"period_id": d["id"]})
+        d["kecamatan_count"] = count_map.get(d["id"], 0)
         d["has_excel"] = bool(d.get("excel_path"))
     return docs
 
@@ -381,8 +387,14 @@ async def dashboard(period_id: Optional[str] = None, user=Depends(current_user))
     ]
     # trend across all periods
     trend = []
+    period_ids = [per["id"] for per in all_periods]
+    all_kec = await db.kecamatan.find({"period_id": {"$in": period_ids}}, {"_id": 0}).to_list(10000)
+    kec_by_period = {}
+    for k in all_kec:
+        kec_by_period.setdefault(k["period_id"], []).append(k)
+
     for per in all_periods:
-        pd = await db.kecamatan.find({"period_id": per["id"]}, {"_id": 0}).to_list(200)
+        pd = kec_by_period.get(per["id"], [])
         t = sum(r["total_rt"] for r in pd)
         lis = sum(r["rt_pln"] + r["rt_nonpln"] for r in pd)
         pln = sum(r["rt_pln"] for r in pd)
