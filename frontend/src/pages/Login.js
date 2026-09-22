@@ -49,9 +49,6 @@ export default function Login() {
         <div className="absolute inset-0 bg-gradient-to-r from-teal-950/40 to-transparent" />
         <div className="relative z-10 flex flex-col justify-between p-12 text-white">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center">
-              <Zap className="w-7 h-7 text-white" fill="white" />
-            </div>
             <div className="font-bold text-lg leading-tight">
               Pemerintah Kabupaten<br />Murung Raya
             </div>
