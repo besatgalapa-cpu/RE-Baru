@@ -612,6 +612,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ---- Single-server mode (offline/portable): serve built React frontend ----
+# Aktif otomatis hanya jika folder frontend/build tersedia (hasil `yarn build`).
+# Di lingkungan preview (tanpa build) blok ini dilewati sehingga tidak mengganggu.
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+
+BUILD_DIR = ROOT_DIR.parent / "frontend" / "build"
+if BUILD_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(BUILD_DIR / "static")), name="static-assets")
+
+    @app.get("/{full_path:path}")
+    async def spa_handler(full_path: str):
+        # Biarkan rute API ditangani router; sisanya dilayani sebagai SPA.
+        if full_path.startswith("api"):
+            raise HTTPException(status_code=404, detail="Not found")
+        candidate = BUILD_DIR / full_path
+        if full_path and candidate.exists() and candidate.is_file():
+            return FileResponse(str(candidate))
+        return FileResponse(str(BUILD_DIR / "index.html"))
+
+
 
 async def seed_data():
     if await db.periods.count_documents({}) > 0:

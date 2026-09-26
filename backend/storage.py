@@ -1,5 +1,13 @@
 import os
+import mimetypes
 import requests
+from pathlib import Path
+
+# Mode penyimpanan: "cloud" (default, untuk preview/online) atau "local" (untuk offline/portable)
+STORAGE_MODE = os.environ.get("STORAGE_MODE", "cloud").strip().lower()
+LOCAL_STORAGE_DIR = Path(
+    os.environ.get("LOCAL_STORAGE_DIR", str(Path(__file__).parent / "local_storage"))
+)
 
 STORAGE_BASE = (os.environ.get("INTEGRATION_PROXY_URL") or "").strip() or "https://integrations.emergentagent.com"
 STORAGE_URL = STORAGE_BASE.rstrip("/") + "/objstore/api/v1/storage"
@@ -11,6 +19,9 @@ storage_key = None
 
 def init_storage(force: bool = False):
     global storage_key
+    if STORAGE_MODE == "local":
+        LOCAL_STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+        return "local"
     if storage_key and not force:
         return storage_key
     resp = requests.post(f"{STORAGE_URL}/init", json={"emergent_key": EMERGENT_KEY}, timeout=30)
@@ -20,6 +31,11 @@ def init_storage(force: bool = False):
 
 
 def put_object(path: str, data: bytes, content_type: str) -> dict:
+    if STORAGE_MODE == "local":
+        fp = LOCAL_STORAGE_DIR / path
+        fp.parent.mkdir(parents=True, exist_ok=True)
+        fp.write_bytes(data)
+        return {"path": path, "size": len(data)}
     key = init_storage()
     resp = requests.put(
         f"{STORAGE_URL}/objects/{path}",
@@ -31,6 +47,12 @@ def put_object(path: str, data: bytes, content_type: str) -> dict:
 
 
 def get_object(path: str):
+    if STORAGE_MODE == "local":
+        fp = LOCAL_STORAGE_DIR / path
+        if not fp.exists():
+            raise FileNotFoundError(path)
+        ctype = mimetypes.guess_type(str(fp))[0] or "application/octet-stream"
+        return fp.read_bytes(), ctype
     key = init_storage()
     resp = requests.get(f"{STORAGE_URL}/objects/{path}", headers={"X-Storage-Key": key}, timeout=60)
     resp.raise_for_status()
